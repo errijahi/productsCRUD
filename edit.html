@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel test | Edit Product</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Edit Product</h1>
+
+    <div id="flashMessage" class="alert d-none mt-3" role="alert" style="z-index: 1055;"></div>
+
+    <form id="editProductForm" class="bg-white p-4 rounded shadow-sm">
+        <div class="mb-3">
+            <label for="productName" class="form-label">Product Name</label>
+            <input type="text" id="productName" name="productName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="quantityInStock" class="form-label">Quantity in Stock</label>
+            <input type="number" id="quantityInStock" name="quantityInStock" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="pricePerItem" class="form-label">Price per Item</label>
+            <input type="number" id="pricePerItem" name="pricePerItem" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="dateTime" class="form-label">Datetime Submitted</label>
+            <input type="text" id="dateTime" name="dateTime" class="form-control" readonly />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            id: params.get('id'),
+            productName: params.get('productName'),
+            quantity: params.get('quantity'),
+            price: params.get('price'),
+            dateTime: params.get('dateTime')
+        };
+    }
+
+    const params = getUrlParams();
+    document.getElementById('productName').value = params.productName;
+    document.getElementById('quantityInStock').value = params.quantity;
+    document.getElementById('pricePerItem').value = params.price;
+    document.getElementById('dateTime').value = params.dateTime;
+
+    function showFlashMessage(message, type = 'success') {
+        const flashMessage = document.getElementById('flashMessage');
+        flashMessage.textContent = message;
+        flashMessage.className = `alert alert-${type} mt-3 show`;
+        flashMessage.classList.remove('d-none');
+
+        setTimeout(() => {
+            flashMessage.classList.add('d-none');
+        }, 1000);
+    }
+
+    document.getElementById('editProductForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const productId = new URLSearchParams(window.location.search).get('id');
+        const productName = document.getElementById('productName').value;
+        const quantityInStock = document.getElementById('quantityInStock').value;
+        const pricePerItem = document.getElementById('pricePerItem').value;
+
+        const formData = {
+            id: productId,
+            productName: productName,
+            quantity: quantityInStock,
+            price: pricePerItem
+        };
+
+        fetch('backEnd.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showFlashMessage('Product updated successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    showFlashMessage(data.message || 'Failed to update product.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('An error occurred:', error);
+                showFlashMessage('An unexpected error occurred.', 'danger');
+            });
+    });
+</script>
+
+</body>
+</html>
